@@ -27,32 +27,29 @@ def extract_data():
 
 def sort_and_remove_duplicates(df):
     """
-    This method sorts the dataframe based on the LRPName, and then removes any duplicates from those columns
+    This method sorts the dataframe based on the chainage, and then removes any duplicates from those columns
     """
-    sorted_df = df.sort_values(by='LRPName')
+    sorted_df = df.sort_values(by='chainage')
     dropped_df = sorted_df.drop_duplicates(subset='LRPName', keep='first')
     dropped_df.reset_index(drop=True, inplace=True)
     return dropped_df
 
-
-def add_modeltype_id_name(df):
+def add_modeltype_name(df):
     """
     This method adds a modeltype of bridge, renames the LRPName to id, and adds a name for each bridge
     """
     # Label all bridges as a bridge
     df['model_type'] = 'bridge'
-    df = df.rename(columns={'LRPName': 'id'})
     # Add a column called 'name' filled with 'link' and a number from 1 to n
     df['name'] = 'bridge ' + (df.index + 1).astype(str)
     return df
-
 
 def reorder_columns(df):
     """
     This method reorders the column so that they match the demo csv files.
     """
     # Define the desired column order
-    desired_column_order = ['road', 'id', 'model_type', 'name', 'lat', 'lon', 'length']
+    desired_column_order = ['road', 'model_type', 'name', 'lat', 'lon', 'length', 'chainage']
     # Reassign the DataFrame with the desired column order
     df = df[desired_column_order]
     return df
@@ -83,15 +80,55 @@ def format_source_sink(source_sink_df):
     of 0. It also calls the reorder method to order to columns in the same format.
     """
     # Remove unnecessary columns
-    source_sink_df.drop(columns=['chainage', 'gap', 'type'], inplace=True)
-    # Rename lrp to id
-    source_sink_df = source_sink_df.rename(columns={'lrp': 'id'})
-    # Add a length column, which is assumed to be 0
-    source_sink_df['length'] = 0
+    source_sink_df.drop(columns=['gap', 'type', 'lrp'], inplace=True)
+    # Add a length column, which is assumed to be 1
+    source_sink_df['length'] = 1
     # Put them in the correct order.
     source_sink_df = reorder_columns(source_sink_df)
     return source_sink_df
 
+
+def add_links(df):
+    """
+    This method adds all the links inbetween the bridges, source, and sink. The lenght is determined by the
+    chainage of the next row, minus the chainage of the previous one.
+    """
+    new_dfs = []
+    for i in range(len(df) - 1):
+        row_before = df.iloc[i]
+        row_after = df.iloc[i + 1]
+        new_row = {
+            # put the link inbetween the two bridges
+            'chainage': row_before['chainage'] + (row_after['chainage'] - row_before['chainage']) / 2,
+            'road': row_before['road'],
+            'model_type': 'link',
+            'name': 'link ' + str(i+1),
+            # put the coordiantes as averages of the two lats and lons
+            'lat': (row_before['lat'] + row_after['lat']) / 2,
+            'lon': (row_before['lon'] + row_after['lon']) / 2,
+            # make the length be the difference of the cahinages of its neighbors, and multiply by 1000 to convert km->m
+            # rounding is used to fix floating point rounding problems
+            'length': round((row_after['chainage'] - row_before['chainage']) * 1000, 2)
+            # 'length': (row_after['chainage'] - row_before['chainage']) * 1000
+        }
+
+        new_dfs.append(pd.concat([pd.DataFrame([row_before]), pd.DataFrame([new_row])], ignore_index=True))
+
+    # Append the last row of the original DataFrame
+    new_dfs.append(pd.DataFrame([df.iloc[-1]]))
+
+    return pd.concat(new_dfs, ignore_index=True)
+
+def remove_chainage_and_add_id(df):
+    """
+    Thid method removes the chainage column as it is not needed anymore, and adds an id column,
+    giving each row a unique id starting from 200000
+    """
+    # Remove chainage
+    df = df.drop(columns=['chainage'])
+    # Insert an id column
+    df.insert(1, 'id', range(200000, 200000 + len(df)))
+    return df
 
 # Here, all functions are called sequentially
 
@@ -101,8 +138,8 @@ extracted_df = extract_data()
 # Sort the data and remove the duplicates
 sorted_df = sort_and_remove_duplicates(extracted_df)
 
-# Add missing columns: model_type, id, name
-full_df = add_modeltype_id_name(sorted_df)
+# Add missing columns: model_type, name
+full_df = add_modeltype_name(sorted_df)
 
 # Reorder the columns so they match the format
 reordered_df = reorder_columns(full_df)
@@ -117,8 +154,14 @@ formatted_end_of_road_df = format_source_sink(end_of_road_df)
 # Insert the source before the main dataframe and the sink after words
 combined_df = pd.concat([formatted_start_of_road_df, reordered_df, formatted_end_of_road_df])
 
+# Add all the links
+with_links_df = add_links(combined_df)
+
+# Remove the chainage column and give each record a unique id
+final_df = remove_chainage_and_add_id(with_links_df)
+
 # Display the DataFrame
-print(combined_df)
+print(final_df)
 
 # Save to a csv file in the same folder as the other demos
-combined_df.to_csv('../data/N1.csv', index=False)
+final_df.to_csv('../data/N1.csv', index=False)
