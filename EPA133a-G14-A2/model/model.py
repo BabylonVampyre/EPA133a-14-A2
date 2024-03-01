@@ -1,3 +1,4 @@
+import mesa
 from mesa import Model
 from mesa.time import BaseScheduler
 from mesa.space import ContinuousSpace
@@ -23,6 +24,12 @@ def set_lat_lon_bound(lat_min, lat_max, lon_min, lon_max, edge_ratio=0.02):
     x_min = lon_min - lon_edge
     y_min = lat_max + lat_edge
     return y_min, y_max, x_min, x_max
+
+def get_delay(agent):
+    if type(agent) == Bridge:
+        return agent.get_delay_time()
+    else:
+        return None
 
 
 # ---------------------------------------------------------------
@@ -63,9 +70,16 @@ class BangladeshModel(Model):
         self.space = None
         self.sources = []
         self.sinks = []
-
         self.generate_model()
+        self.model_reporters = {}
+        self.agent_reporters = {}
+        self.model_vars = {}
+        self._agent_records = {}
+        self.tables = {}
 
+#data collector of delay time
+        self.datacollector = mesa.DataCollector(model_reporters={},
+                                                agent_reporters={"Delay time": get_delay})
     def generate_model(self):
         """
         generate the simulation model according to the csv file component information
@@ -162,7 +176,13 @@ class BangladeshModel(Model):
         """
         Advance the simulation by one step.
         """
+        self.datacollector.collect(self)
+
+
         self.schedule.step()
 
 
-# EOF -----------------------------------------------------------
+
+
+
+    # EOF -----------------------------------------------------------

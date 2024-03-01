@@ -1,4 +1,13 @@
+import mesa
+
 from model import BangladeshModel
+import contextlib
+import itertools
+import types
+from functools import partial
+
+with contextlib.suppress(ImportError):
+    import pandas as pd
 
 """
     Run simulation
@@ -23,3 +32,8 @@ print("SEED " + str(sim_model._seed))
 # One run with given steps
 for i in range(run_length):
     sim_model.step()
+
+
+df = sim_model.datacollector.get_agent_vars_dataframe()
+print(df)
+df.to_csv("../model/OutputModel.csv")

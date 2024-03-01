@@ -1,3 +1,4 @@
+import mesa
 from mesa import Agent
 from enum import Enum
 
@@ -27,7 +28,9 @@ class Infra(Agent):
         self.road_name = road_name
         self.vehicle_count = 0
 
+
     def step(self):
+
         pass
 
     def __str__(self):
