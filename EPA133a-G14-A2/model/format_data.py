@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 
 # To help with printing
@@ -16,10 +17,8 @@ def extract_data():
     # Select all rows where the column "road" is equal to "N1"
     bridge_df = df_read[df_read['road'] == 'N1']
     # List of column names to remove
-    columns_to_remove = ['type', 'name',
-                       'condition', 'structureNr', 'roadName',
-                       'width', 'constructionYear', 'spans', 'zone', 'circle',
-                       'division', 'sub-division', 'EstimatedLoc']
+    columns_to_remove = ['type', 'name', 'roadName', 'structureNr', 'width', 'constructionYear', 'spans', 'zone',
+                         'circle', 'division', 'sub-division', 'EstimatedLoc']
     # Drop the specified columns
     bridge_df = bridge_df.drop(columns=columns_to_remove)
     return bridge_df
@@ -29,10 +28,23 @@ def sort_and_remove_duplicates(df):
     """
     This method sorts the dataframe based on the chainage, and then removes any duplicates from those columns
     """
-    sorted_df = df.sort_values(by='chainage')
-    dropped_df = sorted_df.drop_duplicates(subset='LRPName', keep='first')
+    ordered_df = df.sort_values(by='chainage')
+    # Define custom aggregation functions
+    aggregations = {
+        'condition': 'max',  # Keep the worst grade
+        'length': 'mean',  # Take the average
+        'road': 'first',
+        'LRPName': 'first',
+        'chainage': 'first',
+        'lat': 'mean',
+        'lon': 'mean'
+    }
+    # Apply groupby with custom aggregations
+    dropped_df = ordered_df.groupby('LRPName').agg(aggregations)
     dropped_df.reset_index(drop=True, inplace=True)
+
     return dropped_df
+
 
 def add_modeltype_name(df):
     """
@@ -44,12 +56,13 @@ def add_modeltype_name(df):
     df['name'] = 'bridge ' + (df.index + 1).astype(str)
     return df
 
+
 def reorder_columns(df):
     """
     This method reorders the column so that they match the demo csv files.
     """
     # Define the desired column order
-    desired_column_order = ['road', 'model_type', 'name', 'lat', 'lon', 'length', 'chainage']
+    desired_column_order = ['road', 'model_type', 'name', 'lat', 'lon', 'length', 'chainage', 'condition']
     # Reassign the DataFrame with the desired column order
     df = df[desired_column_order]
     return df
@@ -59,19 +72,15 @@ def create_source_sink():
     """
     This method makes a source and a sink dataframe
     """
-    global start_of_road_df, end_of_road_df
     # Read the CSV file into a DataFrame
     df = pd.read_csv("../data/_roads3.csv", header=0)
     # Select all rows where the column "road" is equal to "N1"
     road_df = df[df['road'] == 'N1']
     # add model types and names for the source and sink dataframes
-    start_of_road_df = road_df[road_df['name'].str.startswith('Start of Road')].copy()
-    start_of_road_df['model_type'] = 'source'
-    start_of_road_df['name'] = 'source'
-    end_of_road_df = road_df[road_df['name'].str.startswith('End of Road')].copy()
-    end_of_road_df['model_type'] = 'sink'
-    end_of_road_df['name'] = 'sink'
-    return start_of_road_df, end_of_road_df
+    start_end_road_df = road_df[road_df['name'].str.startswith(('Start of Road', 'End of Road'))].copy()
+    start_end_road_df['model_type'] = 'sourcesink'
+    start_end_road_df['name'] = 'sourcesink'
+    return start_end_road_df
 
 
 def format_source_sink(source_sink_df):
@@ -82,7 +91,8 @@ def format_source_sink(source_sink_df):
     # Remove unnecessary columns
     source_sink_df.drop(columns=['gap', 'type', 'lrp'], inplace=True)
     # Add a length column, which is assumed to be 1
-    source_sink_df['length'] = 1
+    source_sink_df['length'] = 0
+    source_sink_df['condition'] = np.NAN
     # Put them in the correct order.
     source_sink_df = reorder_columns(source_sink_df)
     return source_sink_df
@@ -108,8 +118,8 @@ def add_links(df):
             'lon': (row_before['lon'] + row_after['lon']) / 2,
             # make the length be the difference of the cahinages of its neighbors, and multiply by 1000 to convert km->m
             # rounding is used to fix floating point rounding problems
-            'length': round((row_after['chainage'] - row_before['chainage']) * 1000, 2)
-            # 'length': (row_after['chainage'] - row_before['chainage']) * 1000
+            'length': max(0, round((row_after['chainage'] - row_before['chainage']) * 1000, 2)),
+            'condition': np.NAN
         }
 
         new_dfs.append(pd.concat([pd.DataFrame([row_before]), pd.DataFrame([new_row])], ignore_index=True))
@@ -118,6 +128,7 @@ def add_links(df):
     new_dfs.append(pd.DataFrame([df.iloc[-1]]))
 
     return pd.concat(new_dfs, ignore_index=True)
+
 
 def remove_chainage_and_add_id(df):
     """
@@ -129,6 +140,7 @@ def remove_chainage_and_add_id(df):
     # Insert an id column
     df.insert(1, 'id', range(200000, 200000 + len(df)))
     return df
+
 
 # Here, all functions are called sequentially
 
@@ -145,14 +157,15 @@ full_df = add_modeltype_name(sorted_df)
 reordered_df = reorder_columns(full_df)
 
 # Create dataframes for the source and sink line
-start_of_road_df, end_of_road_df = create_source_sink()
+start_end_of_road_df = create_source_sink()
 
 # Format these source and sink dataframes
-formatted_start_of_road_df = format_source_sink(start_of_road_df)
-formatted_end_of_road_df = format_source_sink(end_of_road_df)
+formatted_start_end_of_road_df = format_source_sink(start_end_of_road_df)
 
 # Insert the source before the main dataframe and the sink after words
-combined_df = pd.concat([formatted_start_of_road_df, reordered_df, formatted_end_of_road_df])
+combined_df = pd.concat([formatted_start_end_of_road_df.iloc[[0]], reordered_df,
+                         formatted_start_end_of_road_df.iloc[[1]]])
+
 
 # Add all the links
 with_links_df = add_links(combined_df)
