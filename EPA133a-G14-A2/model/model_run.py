@@ -29,7 +29,7 @@ sim_model = BangladeshModel(seed=seed)
 # Check if the seed is set
 print("SEED " + str(sim_model._seed))
 
-# One run with given steps
+# One run with given step
 for i in range(run_length):
     sim_model.step()
 

@@ -77,7 +77,7 @@ class BangladeshModel(Model):
         self._agent_records = {}
         self.tables = {}
 
-#data collector of delay time and vehicle driving time when the vehicle has arrived at sink
+#data collector of delay time and vehicle driving time when the vehicle has arrived at the sink
         self.datacollector = mesa.DataCollector(model_reporters={},
                                                 agent_reporters={"Delay time": lambda a: get_delay(a) if a.__class__.__name__ == 'Bridge' else None,
                                                                  "Driving time of cars leaving": lambda a: a.vehicle_removed_driving_time if a.__class__.__name__ == 'Sink' else None})
