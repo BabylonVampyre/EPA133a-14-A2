@@ -77,9 +77,11 @@ class BangladeshModel(Model):
         self._agent_records = {}
         self.tables = {}
 
-#data collector of delay time
+#data collector of delay time and vehicle driving time when the vehicle has arrived at sink
         self.datacollector = mesa.DataCollector(model_reporters={},
-                                                agent_reporters={"Delay time": get_delay})
+                                                agent_reporters={"Delay time": lambda a: get_delay(a) if a.__class__.__name__ == 'Bridge' else None,
+                                                                 "Driving time of cars leaving": lambda a: a.vehicle_removed_driving_time if a.__class__.__name__ == 'Sink' else None})
+
     def generate_model(self):
         """
         generate the simulation model according to the csv file component information
@@ -176,13 +178,7 @@ class BangladeshModel(Model):
         """
         Advance the simulation by one step.
         """
-        self.datacollector.collect(self)
-
-
         self.schedule.step()
-
-
-
-
+        self.datacollector.collect(self)
 
     # EOF -----------------------------------------------------------

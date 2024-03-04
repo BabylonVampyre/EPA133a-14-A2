@@ -82,12 +82,28 @@ class Sink(Infra):
     __________
     vehicle_removed_toggle: bool
         toggles each time when a vehicle is removed
-    ...
+    self.vehicle_removed_driving_time: array int
+        difference between vehicle's tick of sink and tick of source
 
     """
     vehicle_removed_toggle = False
 
+    def __init__(self, unique_id, model, length=0,
+                 name='Unknown', road_name='Unknown'):
+        super().__init__(unique_id, model, length, name, road_name)
+
+        self.vehicle_removed_driving_time = []
+        self.tick_removing=self.model.schedule.steps
+
     def remove(self, vehicle):
+        #update the tick we are removing at
+        if self.tick_removing<self.model.schedule.steps:
+            self.vehicle_removed_driving_time=[]
+            self.tick_removing = self.model.schedule.steps
+
+        #append the truck to the list of vehicles this sink removes at this tick
+        self.vehicle_removed_driving_time.append([vehicle.unique_id,vehicle.removed_at_step-vehicle.generated_at_step])
+
         self.model.schedule.remove(vehicle)
         self.vehicle_removed_toggle = not self.vehicle_removed_toggle
         print(str(self) + ' REMOVE ' + str(vehicle))
