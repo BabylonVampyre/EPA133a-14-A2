@@ -188,11 +188,13 @@ class Sink(Infra):
         self.vehicle_removed_driving_time = []
         self.tick_removing=self.model.schedule.steps
 
-    def remove(self, vehicle):
-        #update the tick we are removing at
+    def step(self):
         if self.tick_removing<self.model.schedule.steps:
             self.vehicle_removed_driving_time=[]
-            self.tick_removing = self.model.schedule.steps
+
+    def remove(self, vehicle):
+        #update the tick we are removing at
+        self.tick_removing = self.model.schedule.steps
 
         #append the truck to the list of vehicles this sink removes at this tick
         self.vehicle_removed_driving_time.append([vehicle.unique_id,vehicle.removed_at_step-vehicle.generated_at_step])

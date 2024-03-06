@@ -35,5 +35,6 @@ for i in range(run_length):
 
 
 df = sim_model.datacollector.get_agent_vars_dataframe()
-print(df)
+#subset dataframe to only show the sinks and sourcesinks because we want to collect what vehicles they removed and their driving time
+df=df[df['Sink or SourceSink']=='Yes']
 df.to_csv("../model/OutputModel.csv")
