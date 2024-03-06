@@ -185,12 +185,8 @@ class Sink(Infra):
     """
     vehicle_removed_toggle = False
 
-    def __init__(self, unique_id, model, length=0,
-                 name='Unknown', road_name='Unknown'):
-        super().__init__(unique_id, model, length, name, road_name)
-
-        self.vehicle_removed_driving_time = []
-        self.tick_removing=self.model.schedule.steps
+    vehicle_removed_driving_time = []
+    tick_removing=0
 
     def step(self):
         if self.tick_removing<self.model.schedule.steps:
@@ -262,7 +258,17 @@ class SourceSink(Source, Sink):
     """
     Generates and removes trucks
     """
-    pass
+    #combined step function because multiple inheritance is weird?
+    def step(self):
+        #source step
+        if self.model.schedule.steps % self.generation_frequency == 0:
+            self.generate_truck()
+        else:
+            self.vehicle_generated_flag = False
+
+        #sink step
+        if self.tick_removing < self.model.schedule.steps:
+            self.vehicle_removed_driving_time = []
 
 
 # ---------------------------------------------------------------
