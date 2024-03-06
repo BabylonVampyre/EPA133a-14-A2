@@ -1,9 +1,6 @@
 import mesa
 from mesa import Agent
 from enum import Enum
-import numpy as np
-import random
-
 
 
 # ---------------------------------------------------------------
@@ -57,111 +54,17 @@ class Bridge(Infra):
     """
 
     def __init__(self, unique_id, model, length=0,
-                 name='Unknown', road_name='Unknown', condition='Unknown', scenario = 0):
+                 name='Unknown', road_name='Unknown', condition='Unknown'):
         super().__init__(unique_id, model, length, name, road_name)
 
         self.condition = condition
 
-        #from model_run import seed
-        #random.seed(seed)
-        broken_roll = random.randrange(1,101)
-        possible_delay_time = 1
-
-        if scenario == 0:
-            self.delay_time = 0
-
-        if scenario == 1:
-            if condition == 'A' or condition == 'B' or condition == 'C':
-                self.delay_time = 0
-            elif condition == 'D' and broken_roll <= 5:
-                self.delay_time = possible_delay_time
-            else:
-                self.delay_time = 0
-        if scenario == 2:
-            if condition == 'A' or condition == 'B' or condition == 'C':
-                self.delay_time = 0
-            elif condition == 'D' and broken_roll <= 10:
-                self.delay_time = possible_delay_time
-            else:
-                self.delay_time = 0
-        if scenario == 3:
-            if condition == 'A' or condition == 'B':
-                self.delay_time = 0
-            elif condition == 'C' and broken_roll <= 5:
-                self.delay_time = possible_delay_time
-            elif condition == 'D' and broken_roll <= 10:
-                self.delay_time = possible_delay_time
-            else:
-                self.delay_time = 0
-        if scenario == 4:
-            if condition == 'A' or condition == 'B':
-                self.delay_time = 0
-            elif condition == 'C' and broken_roll <= 10:
-                self.delay_time = possible_delay_time
-            elif condition == 'D' and broken_roll <= 20:
-                self.delay_time = possible_delay_time
-            else:
-                self.delay_time = 0
-        if scenario == 5:
-            if condition == 'A':
-                self.delay_time = 0
-            elif condition == 'B' and broken_roll <= 5:
-                self.delay_time = possible_delay_time
-            elif condition == 'C' and broken_roll <= 10:
-                self.delay_time = possible_delay_time
-            elif condition == 'D' and broken_roll <= 20:
-                self.delay_time = possible_delay_time
-            else:
-                self.delay_time = 0
-        if scenario == 6:
-            if condition == 'A':
-                self.delay_time = 0
-            elif condition == 'B' and broken_roll <= 10:
-                self.delay_time = possible_delay_time
-            elif condition == 'C' and broken_roll <= 20:
-                self.delay_time = possible_delay_time
-            elif condition == 'D' and broken_roll <= 40:
-                self.delay_time = possible_delay_time
-            else:
-                self.delay_time = 0
-        if scenario == 7:
-            if condition == 'A' and broken_roll <= 5:
-                self.delay_time = possible_delay_time
-            elif condition == 'B' and broken_roll <= 10:
-                self.delay_time = possible_delay_time
-            elif condition == 'C' and broken_roll <= 20:
-                self.delay_time = possible_delay_time
-            elif condition == 'D' and broken_roll <= 40:
-                self.delay_time = possible_delay_time
-            else:
-                self.delay_time = 0
-        if scenario == 8:
-            if condition == 'A' and broken_roll <= 10:
-                self.delay_time = possible_delay_time
-            elif condition == 'B' and broken_roll <= 20:
-                self.delay_time = possible_delay_time
-            elif condition == 'C' and broken_roll <= 40:
-                self.delay_time = possible_delay_time
-            elif condition == 'D' and broken_roll <= 80:
-                self.delay_time = possible_delay_time
-            else:
-                self.delay_time = 0
-
+        # TODO
+        self.delay_time = self.random.randrange(0, 10)
+        # print(self.delay_time)
 
     # TODO
     def get_delay_time(self):
-        from model_run import seed
-        #np.random.seed(seed)
-        if self.delay_time == 0:
-            self.delay_time = 0
-        elif self.length <= 10:
-            self.delay_time = random.uniform(10,20)
-        elif self.length <= 50:
-            self.delay_time = random.uniform(15,60)
-        elif self.length <= 200:
-            self.delay_time = random.uniform(45,90)
-        else:
-            self.delay_time = random.triangular(60,240,120)
         return self.delay_time
 
 
@@ -185,12 +88,8 @@ class Sink(Infra):
     """
     vehicle_removed_toggle = False
 
-    def __init__(self, unique_id, model, length=0,
-                 name='Unknown', road_name='Unknown'):
-        super().__init__(unique_id, model, length, name, road_name)
-
-        self.vehicle_removed_driving_time = []
-        self.tick_removing=self.model.schedule.steps
+    vehicle_removed_driving_time = []
+    tick_removing=0
 
     def step(self):
         if self.tick_removing<self.model.schedule.steps:
@@ -262,7 +161,18 @@ class SourceSink(Source, Sink):
     """
     Generates and removes trucks
     """
-    pass
+
+    #combined step function because multiple inheritance is weird?
+    def step(self):
+        #source step
+        if self.model.schedule.steps % self.generation_frequency == 0:
+            self.generate_truck()
+        else:
+            self.vehicle_generated_flag = False
+
+        #sink step
+        if self.tick_removing < self.model.schedule.steps:
+            self.vehicle_removed_driving_time = []
 
 
 # ---------------------------------------------------------------
