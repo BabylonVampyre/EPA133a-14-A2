@@ -65,6 +65,30 @@ class Bridge(Infra):
 
     # TODO
     def get_delay_time(self):
+        #get unique ID number of the trucks, so all trucks have a detremened but unique chance at delay
+        #get vihilce ID
+        for agent in self.model.schedule.agents:
+            if isinstance(agent,Vehicle):
+                #get the id out of the string
+                extra_seed = ""
+                for char in agent.unique_id:
+                    if char.isdigit():
+                        extra_seed += char
+        #import main seed for model_run and add the unique id to it
+        from model_run import seed
+        seed = seed + int(extra_seed)
+        np.random.seed(seed)
+        #Check length of the bridges and calculate the uniuqe delay time at the bridge if it is broken
+        if self.delay_time == 0:
+            self.delay_time = 0
+        elif self.length <= 10:
+            self.delay_time = random.uniform(10,20)
+        elif self.length <= 50:
+            self.delay_time = random.uniform(15,60)
+        elif self.length <= 200:
+            self.delay_time = random.uniform(45,90)
+        else:
+            self.delay_time = random.triangular(60,240,120)
         return self.delay_time
 
 

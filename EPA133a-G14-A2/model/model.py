@@ -90,7 +90,7 @@ class BangladeshModel(Model):
         """
 
         df = pd.read_csv('../data/N1.csv')
-
+        print(sum(df['length']))
         # a list of names of roads to be generated
         roads = ['N1']
 
