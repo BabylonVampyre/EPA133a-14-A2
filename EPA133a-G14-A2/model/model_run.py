@@ -23,10 +23,10 @@ with contextlib.suppress(ImportError):
 # run_length = 5 * 24 * 60
 
 # run time 1000 ticks
-run_length = 1000
+run_length = 2000
 
 seed = 1234567
-chosen_scenario = 0
+chosen_scenario = 8
 
 sim_model = BangladeshModel(seed=seed)
 

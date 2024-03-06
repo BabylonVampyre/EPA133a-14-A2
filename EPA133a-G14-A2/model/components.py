@@ -63,8 +63,8 @@ class Bridge(Infra):
 
         self.condition = condition
 
-        #from model_run import seed
-        #random.seed(seed)
+        from model_run import seed
+        random.seed(seed)
         broken_roll = random.randrange(1,101)
         possible_delay_time = 1
 
@@ -151,8 +151,14 @@ class Bridge(Infra):
 
     # TODO
     def get_delay_time(self):
+
+        # import main seed for model_run and add the current step to it so the delay each step is different, but deterministic
+        extra_seed = self.model.schedule.steps
+
         from model_run import seed
-        #np.random.seed(seed)
+        seed = seed + extra_seed
+        np.random.seed(seed)
+        # Check length of the bridges and calculate the uniuqe delay time at the bridge if it is broken
         if self.delay_time == 0:
             self.delay_time = 0
         elif self.length <= 10:
