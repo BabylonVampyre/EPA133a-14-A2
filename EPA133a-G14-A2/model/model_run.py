@@ -23,6 +23,7 @@ with contextlib.suppress(ImportError):
 run_length = 1000
 
 seed = 1234567
+chosen_scenario = 8
 
 sim_model = BangladeshModel(seed=seed)
 
@@ -36,5 +37,5 @@ for i in range(run_length):
 
 df = sim_model.datacollector.get_agent_vars_dataframe()
 #subset dataframe to only show the sinks and sourcesinks because we want to collect what vehicles they removed and their driving time
-df=df[df['Sink or SourceSink']=='Yes']
+df=df[df['Driving time of cars leaving']!= None]
 df.to_csv("../model/OutputModel.csv")

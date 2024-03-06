@@ -79,9 +79,8 @@ class BangladeshModel(Model):
 
 #data collector of delay time and vehicle driving time when the vehicle has arrived at the sink
         self.datacollector = mesa.DataCollector(model_reporters={},
-                                                agent_reporters={"Sink or SourceSink": lambda a: 'Yes' if a.__class__.__name__ == 'Sink' or a.__class__.__name__ == 'SourceSink' else None,
-                                                                 "Delay time": lambda a: get_delay(a) if a.__class__.__name__ == 'Bridge' else None,
-                                                                 "Driving time of cars leaving": lambda a: a.vehicle_removed_driving_time if a.__class__.__name__ == 'Sink' else None})
+                                                agent_reporters={"Delay time": lambda a: get_delay(a) if a.__class__.__name__ == 'Bridge' else None,
+                                                                 "Driving time of cars leaving": lambda a: a.vehicle_removed_driving_time if a.__class__.__name__ == 'Sink' or a.__class__.__name__ == 'SourceSink' else None})
 
     def generate_model(self):
         """
@@ -134,6 +133,7 @@ class BangladeshModel(Model):
         # ContinuousSpace from the Mesa package;
         # not to be confused with the SimpleContinuousModule visualization
         self.space = ContinuousSpace(x_max, y_max, True, x_min, y_min)
+        from model_run import chosen_scenario
 
         for df in df_objects_all:
             for _, row in df.iterrows():    # index, row in ...
@@ -153,7 +153,7 @@ class BangladeshModel(Model):
                     self.sources.append(agent.unique_id)
                     self.sinks.append(agent.unique_id)
                 elif model_type == 'bridge':
-                    agent = Bridge(row['id'], self, row['length'], row['name'], row['road'])
+                    agent = Bridge(row['id'], self, row['length'], row['name'], row['road'], scenario = chosen_scenario)
                 elif model_type == 'link':
                     agent = Link(row['id'], self, row['length'], row['name'], row['road'])
 
