@@ -1,6 +1,7 @@
 import mesa
 from mesa import Agent
 from enum import Enum
+import numpy as np
 import random
 
 
@@ -149,16 +150,18 @@ class Bridge(Infra):
 
     # TODO
     def get_delay_time(self):
+        from model_run import seed
+        #np.random.seed(seed)
         if self.delay_time == 0:
             self.delay_time = 0
         elif self.length <= 10:
-            self.delay_time = random.choice([10,20])
+            self.delay_time = random.uniform(10,20)
         elif self.length <= 50:
-            self.delay_time = random.choice([15,60])
+            self.delay_time = random.uniform(15,60)
         elif self.length <= 200:
-            self.delay_time = random.choice([45,90])
+            self.delay_time = random.uniform(45,90)
         else:
-            self.delay_time = random.choice([60,120,240])
+            self.delay_time = random.triangular(left = 60,mode = 120,right = 240)
         return self.delay_time
 
 
