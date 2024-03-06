@@ -17,10 +17,13 @@ def extract_data():
     # Select all rows where the column "road" is equal to "N1"
     bridge_df = df_read[df_read['road'] == 'N1']
     # List of column names to remove
-    columns_to_remove = ['type', 'name', 'roadName', 'structureNr', 'width', 'constructionYear', 'spans', 'zone',
+    columns_to_remove = ['type', 'roadName', 'structureNr', 'width', 'constructionYear', 'spans', 'zone',
                          'circle', 'division', 'sub-division', 'EstimatedLoc']
     # Drop the specified columns
     bridge_df = bridge_df.drop(columns=columns_to_remove)
+
+    bridge_df = bridge_df[bridge_df['chainage'] <= 241.063]
+
     return bridge_df
 
 
@@ -37,11 +40,38 @@ def sort_and_remove_duplicates(df):
         'LRPName': 'first',
         'chainage': 'first',
         'lat': 'mean',
-        'lon': 'mean'
+        'lon': 'mean',
+        'name': 'first'
     }
     # Apply groupby with custom aggregations
     dropped_df = ordered_df.groupby('LRPName').agg(aggregations)
+
+    dropped_df.to_csv('../data/before removing dupes.csv', index=False)
+    # print("before renaming")
+    # print(dropped_df)
+    dropped_df['name'] = (dropped_df['name']
+                          .str.lower()
+                          .str.replace('r', 'l')
+                          .str.replace(' ', '')
+                          .str.replace('.', ''))#.str.replace('left', 'right')
+
+    # print("after renaming")
+    # print(dropped_df)
+
+    dropped_df = dropped_df.groupby('name').agg(aggregations)
     dropped_df.reset_index(drop=True, inplace=True)
+
+    # print("after agg on name")
+    # print(dropped_df)
+
+
+    dropped_df = dropped_df.groupby('chainage').agg(aggregations)
+    dropped_df.reset_index(drop=True, inplace=True)
+
+    dropped_df.to_csv('../data/after removing dupes.csv', index=False)
+
+
+    dropped_df.drop(columns=['name'], inplace=True)
 
     return dropped_df
 
@@ -77,9 +107,11 @@ def create_source_sink():
     # Select all rows where the column "road" is equal to "N1"
     road_df = df[df['road'] == 'N1']
     # add model types and names for the source and sink dataframes
-    start_end_road_df = road_df[road_df['name'].str.startswith(('Start of Road', 'End of Road'))].copy()
+    start_end_road_df = road_df[road_df['name'].str.startswith(('Start of Road', 'Chittagong city area ends and the survey of N1 starts again'))].copy()
     start_end_road_df['model_type'] = 'sourcesink'
     start_end_road_df['name'] = 'sourcesink'
+    print("we need this:: ")
+    print(start_end_road_df)
     return start_end_road_df
 
 
@@ -175,6 +207,7 @@ final_df = remove_chainage_and_add_id(with_links_df)
 
 # Display the DataFrame
 print(final_df)
+print(final_df['length'].sum())
 
 # Save to a csv file in the same folder as the other demos
 final_df.to_csv('../data/N1.csv', index=False)
