@@ -1,6 +1,9 @@
 import mesa
 from mesa import Agent
 from enum import Enum
+import numpy as np
+import random
+#mini change
 
 
 # ---------------------------------------------------------------
