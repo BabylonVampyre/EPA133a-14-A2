@@ -185,7 +185,6 @@ class SourceSink(Source, Sink):
     """
     Generates and removes trucks
     """
-
     #combined step function because multiple inheritance is weird?
     def step(self):
         #source step
