@@ -4,6 +4,7 @@ from enum import Enum
 import numpy as np
 import random
 #mini change
+#mini change 2
 
 
 # ---------------------------------------------------------------
@@ -57,31 +58,101 @@ class Bridge(Infra):
     """
 
     def __init__(self, unique_id, model, length=0,
-                 name='Unknown', road_name='Unknown', condition='Unknown'):
+                 name='Unknown', road_name='Unknown', condition='Unknown', scenario = 0):
         super().__init__(unique_id, model, length, name, road_name)
 
         self.condition = condition
 
-        # TODO
-        self.delay_time = self.random.randrange(0, 10)
-        # print(self.delay_time)
+        #from model_run import seed
+        #random.seed(seed)
+        broken_roll = random.randrange(1,101)
+        possible_delay_time = 1
+
+        if scenario == 0:
+            self.delay_time = 0
+
+        if scenario == 1:
+            if condition == 'A' or condition == 'B' or condition == 'C':
+                self.delay_time = 0
+            elif condition == 'D' and broken_roll <= 5:
+                self.delay_time = possible_delay_time
+            else:
+                self.delay_time = 0
+        if scenario == 2:
+            if condition == 'A' or condition == 'B' or condition == 'C':
+                self.delay_time = 0
+            elif condition == 'D' and broken_roll <= 10:
+                self.delay_time = possible_delay_time
+            else:
+                self.delay_time = 0
+        if scenario == 3:
+            if condition == 'A' or condition == 'B':
+                self.delay_time = 0
+            elif condition == 'C' and broken_roll <= 5:
+                self.delay_time = possible_delay_time
+            elif condition == 'D' and broken_roll <= 10:
+                self.delay_time = possible_delay_time
+            else:
+                self.delay_time = 0
+        if scenario == 4:
+            if condition == 'A' or condition == 'B':
+                self.delay_time = 0
+            elif condition == 'C' and broken_roll <= 10:
+                self.delay_time = possible_delay_time
+            elif condition == 'D' and broken_roll <= 20:
+                self.delay_time = possible_delay_time
+            else:
+                self.delay_time = 0
+        if scenario == 5:
+            if condition == 'A':
+                self.delay_time = 0
+            elif condition == 'B' and broken_roll <= 5:
+                self.delay_time = possible_delay_time
+            elif condition == 'C' and broken_roll <= 10:
+                self.delay_time = possible_delay_time
+            elif condition == 'D' and broken_roll <= 20:
+                self.delay_time = possible_delay_time
+            else:
+                self.delay_time = 0
+        if scenario == 6:
+            if condition == 'A':
+                self.delay_time = 0
+            elif condition == 'B' and broken_roll <= 10:
+                self.delay_time = possible_delay_time
+            elif condition == 'C' and broken_roll <= 20:
+                self.delay_time = possible_delay_time
+            elif condition == 'D' and broken_roll <= 40:
+                self.delay_time = possible_delay_time
+            else:
+                self.delay_time = 0
+        if scenario == 7:
+            if condition == 'A' and broken_roll <= 5:
+                self.delay_time = possible_delay_time
+            elif condition == 'B' and broken_roll <= 10:
+                self.delay_time = possible_delay_time
+            elif condition == 'C' and broken_roll <= 20:
+                self.delay_time = possible_delay_time
+            elif condition == 'D' and broken_roll <= 40:
+                self.delay_time = possible_delay_time
+            else:
+                self.delay_time = 0
+        if scenario == 8:
+            if condition == 'A' and broken_roll <= 10:
+                self.delay_time = possible_delay_time
+            elif condition == 'B' and broken_roll <= 20:
+                self.delay_time = possible_delay_time
+            elif condition == 'C' and broken_roll <= 40:
+                self.delay_time = possible_delay_time
+            elif condition == 'D' and broken_roll <= 80:
+                self.delay_time = possible_delay_time
+            else:
+                self.delay_time = 0
+
 
     # TODO
     def get_delay_time(self):
-        #get unique ID number of the trucks, so all trucks have a detremened but unique chance at delay
-        #get vihilce ID
-        for agent in self.model.schedule.agents:
-            if isinstance(agent,Vehicle):
-                #get the id out of the string
-                extra_seed = ""
-                for char in agent.unique_id:
-                    if char.isdigit():
-                        extra_seed += char
-        #import main seed for model_run and add the unique id to it
         from model_run import seed
-        seed = seed + int(extra_seed)
-        np.random.seed(seed)
-        #Check length of the bridges and calculate the uniuqe delay time at the bridge if it is broken
+        #np.random.seed(seed)
         if self.delay_time == 0:
             self.delay_time = 0
         elif self.length <= 10:

@@ -6,6 +6,7 @@ import itertools
 import types
 from functools import partial
 #mini change
+#mini change 2
 
 
 with contextlib.suppress(ImportError):
