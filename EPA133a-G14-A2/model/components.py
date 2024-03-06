@@ -161,7 +161,7 @@ class Bridge(Infra):
         elif self.length <= 200:
             self.delay_time = random.uniform(45,90)
         else:
-            self.delay_time = random.triangular(left = 60,mode = 120,right = 240)
+            self.delay_time = random.triangular(60,240,120)
         return self.delay_time
 
 
