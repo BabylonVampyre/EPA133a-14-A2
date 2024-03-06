@@ -46,7 +46,7 @@ def sort_and_remove_duplicates(df):
     # Apply groupby with custom aggregations
     dropped_df = ordered_df.groupby('LRPName').agg(aggregations)
 
-    dropped_df.to_csv('../data/before removing dupes.csv', index=False)
+    # dropped_df.to_csv('../data/before removing dupes.csv', index=False)
     # print("before renaming")
     # print(dropped_df)
     dropped_df['name'] = (dropped_df['name']
@@ -68,7 +68,7 @@ def sort_and_remove_duplicates(df):
     dropped_df = dropped_df.groupby('chainage').agg(aggregations)
     dropped_df.reset_index(drop=True, inplace=True)
 
-    dropped_df.to_csv('../data/after removing dupes.csv', index=False)
+    # dropped_df.to_csv('../data/after removing dupes.csv', index=False)
 
 
     dropped_df.drop(columns=['name'], inplace=True)
