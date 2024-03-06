@@ -5,9 +5,6 @@ import contextlib
 import itertools
 import types
 from functools import partial
-#mini change
-#mini change 2
-
 
 with contextlib.suppress(ImportError):
     import pandas as pd
@@ -20,28 +17,37 @@ with contextlib.suppress(ImportError):
 # ---------------------------------------------------------------
 
 # run time 5 x 24 hours; 1 tick 1 minute
-# run_length = 5 * 24 * 60
+run_length = 5 * 24 * 60
 
 # run time 1000 ticks
-run_length = 2000
-
-seed = 1234567
-chosen_scenario = 8
-
-sim_model = BangladeshModel(seed=seed)
+#run_length = 1000
+#chosen_scenario = 1
+#seed = 1234567 #sim 1
+#seed = 1234568 #sim 2
+#seed = 1234569 #sim 3
+#seed = 1234560 #sim 4
+#seed = 1234561 #sim 5
+#seed = 1234562 #sim 6
+#seed = 1234563 #sim 7
+#seed = 1234564 #sim 8
+#seed = 1234565 #sim 9
+#seed = 1234566 #sim 10
+chosen_scenario = [0,1,2,3,4,5,6,7,8,9]
+seed = [1234567,1234568,1234569,1234560,1234561,1234562,1234563,1234564,1234565,1234566]
+for i in range(len(chosen_scenario)):
+    for j in range(len(seed)):
+        chosen_scenario = i
+        seed = j
+        sim_model = BangladeshModel(seed=j)
 
 # Check if the seed is set
-print("SEED " + str(sim_model._seed))
+#print("SEED " + str(sim_model._seed))
 
-# One run with given step
-for i in range(run_length):
-    sim_model.step()
+# One run with given steps
+        for k in range(run_length):
+             sim_model.step()
 
 
-df = sim_model.datacollector.get_agent_vars_dataframe()
-#subset dataframe to only show the sinks and sourcesinks because we want to collect what vehicles they removed and their driving time
-
-df=df[df['Driving time of cars leaving'].notnull()]
-df=df[df['Driving time of cars leaving'].str.len() != 0]
-print(df.head())
-df.to_csv("../model/OutputModel.csv")
+        df = sim_model.datacollector.get_agent_vars_dataframe()
+        #print(df)
+        df.to_csv(f"../model/experiment/Scenario{i}_sim{i+1}.csv")
