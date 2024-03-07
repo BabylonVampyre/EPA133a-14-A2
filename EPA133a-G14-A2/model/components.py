@@ -62,9 +62,11 @@ class Bridge(Infra):
         super().__init__(unique_id, model, length, name, road_name)
 
         self.condition = condition
-        self.seed = seed
         self.scenario = scenario
         self.delay_time = delay_time
+        self.seed = seed
+        extra_seed = unique_id
+        seed = self.seed + extra_seed
         #print('Bridge:',self.seed, self.scenario)
         random.seed(seed)
         broken_roll = random.randrange(1,101)
