@@ -58,12 +58,13 @@ class Bridge(Infra):
     """
 
     def __init__(self, unique_id, model, length=0,
-                 name='Unknown', road_name='Unknown', condition='Unknown', scenario = 0,delay_time=0):
+                 name='Unknown', road_name='Unknown', condition='Unknown', scenario = 0,delay_time=0,seed=None):
         super().__init__(unique_id, model, length, name, road_name)
 
         self.condition = condition
+        self.seed = seed
+        self.delay_time = delay_time
 
-        from model_run import seed
         random.seed(seed)
         broken_roll = random.randrange(1,101)
         possible_delay_time = 1
@@ -155,8 +156,8 @@ class Bridge(Infra):
         # import main seed for model_run and add the current step to it so the delay each step is different, but deterministic
         extra_seed = self.model.schedule.steps
 
-        from model_run import seed
-        seed = seed + extra_seed
+       # from model_run import seed
+        seed = self.seed + extra_seed
         np.random.seed(seed)
         # Check length of the bridges and calculate the uniuqe delay time at the bridge if it is broken
         if self.delay_time == 0:

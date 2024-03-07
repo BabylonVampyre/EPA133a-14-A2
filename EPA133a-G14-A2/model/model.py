@@ -70,6 +70,7 @@ class BangladeshModel(Model):
         self.space = None
         self.sources = []
         self.sinks = []
+        self.seed = seed
         self.generate_model()
         self.model_reporters = {}
         self.agent_reporters = {}
@@ -77,10 +78,11 @@ class BangladeshModel(Model):
         self._agent_records = {}
         self.tables = {}
 
+
 #data collector of delay time and vehicle driving time when the vehicle has arrived at the sink
         self.datacollector = mesa.DataCollector(model_reporters={},
                                                 agent_reporters={"Delay time": lambda a: get_delay(a) if a.__class__.__name__ == 'Bridge' else None,
-                                                                 "Driving time of cars leaving": lambda a: a.vehicle_removed_driving_time if a.__class__.__name__ == 'Sink' or a.__class__.__name__ == 'SourceSink' else None})
+                                                                 "Driving time of cars leaving": lambda a: a.vehicle_removed_driving_time if a.__class__.__name__ == 'Sink' or a.__class__.__name__ == 'SourceSink' else None,})
 
     def generate_model(self):
         """
@@ -153,7 +155,7 @@ class BangladeshModel(Model):
                     self.sources.append(agent.unique_id)
                     self.sinks.append(agent.unique_id)
                 elif model_type == 'bridge':
-                    agent = Bridge(row['id'], self, row['length'], row['name'], row['road'],row['condition'], scenario = chosen_scenario)
+                    agent = Bridge(row['id'], self, row['length'], row['name'], row['road'],row['condition'], scenario = chosen_scenario,seed=self.seed)
                 elif model_type == 'link':
                     agent = Link(row['id'], self, row['length'], row['name'], row['road'])
 
