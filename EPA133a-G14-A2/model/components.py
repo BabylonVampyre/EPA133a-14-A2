@@ -63,8 +63,9 @@ class Bridge(Infra):
 
         self.condition = condition
         self.seed = seed
+        self.scenario = scenario
         self.delay_time = delay_time
-
+        #print('Bridge:',self.seed, self.scenario)
         random.seed(seed)
         broken_roll = random.randrange(1,101)
         possible_delay_time = 1
@@ -155,7 +156,6 @@ class Bridge(Infra):
 
         # import main seed for model_run and add the current step to it so the delay each step is different, but deterministic
         extra_seed = self.model.schedule.steps
-
        # from model_run import seed
         seed = self.seed + extra_seed
         np.random.seed(seed)
@@ -209,7 +209,7 @@ class Sink(Infra):
 
         self.model.schedule.remove(vehicle)
         self.vehicle_removed_toggle = not self.vehicle_removed_toggle
-        print(str(self) + ' REMOVE ' + str(vehicle))
+        #print(str(self) + ' REMOVE ' + str(vehicle))
 
 
 # ---------------------------------------------------------------
@@ -237,7 +237,7 @@ class Source(Infra):
     truck_counter = 0
     generation_frequency = 5
     vehicle_generated_flag = False
-
+    print(truck_counter)
     def step(self):
         if self.model.schedule.steps % self.generation_frequency == 0:
             self.generate_truck()
@@ -248,6 +248,7 @@ class Source(Infra):
         """
         Generates a truck, sets its path, increases the global and local counters
         """
+
         try:
             agent = Vehicle('Truck' + str(Source.truck_counter), self.model, self)
             if agent:
@@ -256,7 +257,7 @@ class Source(Infra):
                 Source.truck_counter += 1
                 self.vehicle_count += 1
                 self.vehicle_generated_flag = True
-                print(str(self) + " GENERATE " + str(agent))
+                #print(str(self) + " GENERATE " + str(agent))
         except Exception as e:
             print("Oops!", e.__class__, "occurred.")
 
@@ -376,7 +377,7 @@ class Vehicle(Agent):
         """
         To print the vehicle trajectory at each step
         """
-        print(self)
+        #print(self)
 
     def drive(self):
 

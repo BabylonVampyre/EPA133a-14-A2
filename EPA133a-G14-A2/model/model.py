@@ -34,6 +34,7 @@ def get_delay(agent):
 
 # ---------------------------------------------------------------
 class BangladeshModel(Model):
+
     """
     The main (top-level) simulation model
 
@@ -62,7 +63,7 @@ class BangladeshModel(Model):
 
     step_time = 1
 
-    def __init__(self, seed=None, x_max=500, y_max=500, x_min=0, y_min=0):
+    def __init__(self, seed,scenario, x_max=500, y_max=500, x_min=0, y_min=0):
 
         self.schedule = BaseScheduler(self)
         self.running = True
@@ -71,18 +72,22 @@ class BangladeshModel(Model):
         self.sources = []
         self.sinks = []
         self.seed = seed
+        self.scenario = scenario
         self.generate_model()
         self.model_reporters = {}
         self.agent_reporters = {}
         self.model_vars = {}
         self._agent_records = {}
         self.tables = {}
+        self.datacollector = mesa.DataCollector()
+
+
 
 
 #data collector of delay time and vehicle driving time when the vehicle has arrived at the sink
         self.datacollector = mesa.DataCollector(model_reporters={},
                                                 agent_reporters={"Delay time": lambda a: get_delay(a) if a.__class__.__name__ == 'Bridge' else None,
-                                                                 "Driving time of cars leaving": lambda a: a.vehicle_removed_driving_time if a.__class__.__name__ == 'Sink' or a.__class__.__name__ == 'SourceSink' else None,})
+                                                                 "Driving time of cars leaving": lambda a: a.vehicle_removed_driving_time if a.__class__.__name__ == 'Sink' or a.__class__.__name__ == 'SourceSink' else None})
 
     def generate_model(self):
         """
@@ -92,7 +97,8 @@ class BangladeshModel(Model):
         """
 
         df = pd.read_csv('../data/N1.csv')
-        print(sum(df['length']))
+        #print(sum(df['length']))
+        #print('generate model:',self.seed, self.scenario)
         # a list of names of roads to be generated
         roads = ['N1']
 
@@ -135,7 +141,6 @@ class BangladeshModel(Model):
         # ContinuousSpace from the Mesa package;
         # not to be confused with the SimpleContinuousModule visualization
         self.space = ContinuousSpace(x_max, y_max, True, x_min, y_min)
-        from model_run import chosen_scenario
 
         for df in df_objects_all:
             for _, row in df.iterrows():    # index, row in ...
@@ -155,7 +160,7 @@ class BangladeshModel(Model):
                     self.sources.append(agent.unique_id)
                     self.sinks.append(agent.unique_id)
                 elif model_type == 'bridge':
-                    agent = Bridge(row['id'], self, row['length'], row['name'], row['road'],row['condition'], scenario = chosen_scenario,seed=self.seed)
+                    agent = Bridge(row['id'], self, row['length'], row['name'], row['road'],row['condition'], scenario = self.scenario,seed=self.seed)
                 elif model_type == 'link':
                     agent = Link(row['id'], self, row['length'], row['name'], row['road'])
 
