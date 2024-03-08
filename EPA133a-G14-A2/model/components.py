@@ -1,10 +1,7 @@
-import mesa
 from mesa import Agent
 from enum import Enum
 import numpy as np
 import random
-#mini change
-#mini change 2
 
 
 # ---------------------------------------------------------------
@@ -32,7 +29,6 @@ class Infra(Agent):
         self.road_name = road_name
         self.vehicle_count = 0
 
-
     def step(self):
 
         pass
@@ -58,7 +54,7 @@ class Bridge(Infra):
     """
 
     def __init__(self, unique_id, model, length=0,
-                 name='Unknown', road_name='Unknown', condition='Unknown', scenario = 0,delay_time=0,seed=None):
+                 name='Unknown', road_name='Unknown', condition='Unknown', scenario=0, delay_time=0, seed=None):
         super().__init__(unique_id, model, length, name, road_name)
 
         self.condition = condition
@@ -67,14 +63,19 @@ class Bridge(Infra):
         self.seed = seed
         extra_seed = unique_id
         seed = self.seed + extra_seed
-        #print('Bridge:',self.seed, self.scenario)
         random.seed(seed)
-        broken_roll = random.randrange(1,101)
+        # this will be a random number from 1 to 100, it will help
+        # determine if a bridge is broken
+        broken_roll = random.randrange(1, 101)
+        # this will be 0 or 1, meaning there will be a delay or not
         possible_delay_time = 1
 
+        # Check the scenario, if the scenario is 0, there is no delay time
         if scenario == 0:
             self.delay_time = 0
 
+        # If the scenario is 1, there is a possibility of a delay if the condition is D and the broken roll
+        # is less than 5
         if scenario == 1:
             if condition == 'A' or condition == 'B' or condition == 'C':
                 self.delay_time = 0
@@ -82,6 +83,8 @@ class Bridge(Infra):
                 self.delay_time = possible_delay_time
             else:
                 self.delay_time = 0
+        # If the scenario is 2, there is a possibility of a delay if the condition is D and the broken roll
+        # is less than 10
         if scenario == 2:
             if condition == 'A' or condition == 'B' or condition == 'C':
                 self.delay_time = 0
@@ -89,6 +92,8 @@ class Bridge(Infra):
                 self.delay_time = possible_delay_time
             else:
                 self.delay_time = 0
+        # If the scenario is 3, there is a possibility of a delay if the condition is C and the broken roll
+        # is less than 5, or the condition is D and the broken roll is less than 10
         if scenario == 3:
             if condition == 'A' or condition == 'B':
                 self.delay_time = 0
@@ -98,6 +103,8 @@ class Bridge(Infra):
                 self.delay_time = possible_delay_time
             else:
                 self.delay_time = 0
+        # If the scenario is 4, there is a possibility of a delay if the condition is C and the broken roll
+        # is less than 10, or the condition is D and the broken_roll is 20
         if scenario == 4:
             if condition == 'A' or condition == 'B':
                 self.delay_time = 0
@@ -107,6 +114,9 @@ class Bridge(Infra):
                 self.delay_time = possible_delay_time
             else:
                 self.delay_time = 0
+
+        # If the scenario is 5, the possibility of a delay if the condition is 5, there is a possibility of a delay
+        # if the condition is B and the broken roll is less than 5, or, if the condition is C,
         if scenario == 5:
             if condition == 'A':
                 self.delay_time = 0
@@ -118,6 +128,8 @@ class Bridge(Infra):
                 self.delay_time = possible_delay_time
             else:
                 self.delay_time = 0
+
+        # All the other scenarios are determined in a similar way.
         if scenario == 6:
             if condition == 'A':
                 self.delay_time = 0
@@ -129,6 +141,7 @@ class Bridge(Infra):
                 self.delay_time = possible_delay_time
             else:
                 self.delay_time = 0
+
         if scenario == 7:
             if condition == 'A' and broken_roll <= 5:
                 self.delay_time = possible_delay_time
@@ -140,6 +153,7 @@ class Bridge(Infra):
                 self.delay_time = possible_delay_time
             else:
                 self.delay_time = 0
+
         if scenario == 8:
             if condition == 'A' and broken_roll <= 10:
                 self.delay_time = possible_delay_time
@@ -152,26 +166,24 @@ class Bridge(Infra):
             else:
                 self.delay_time = 0
 
-
-    # TODO
     def get_delay_time(self):
-
-        # import main seed for model_run and add the current step to it so the delay each step is different, but deterministic
+        # import main seed for model_run and add the current step to it so the delay
+        # each step is different, but deterministic
         extra_seed = self.model.schedule.steps
-       # from model_run import seed
+        # from model_run import seed
         seed = self.seed + extra_seed
         np.random.seed(seed)
-        # Check length of the bridges and calculate the uniuqe delay time at the bridge if it is broken
+        # Check length of the bridges and calculate the unique delay time at the bridge if it is broken
         if self.delay_time == 0:
             self.delay_time = 0
         elif self.length <= 10:
-            self.delay_time = random.uniform(10,20)
+            self.delay_time = random.uniform(10, 20)
         elif self.length <= 50:
-            self.delay_time = random.uniform(15,60)
+            self.delay_time = random.uniform(15, 60)
         elif self.length <= 200:
-            self.delay_time = random.uniform(45,90)
+            self.delay_time = random.uniform(45, 90)
         else:
-            self.delay_time = random.triangular(60,240,120)
+            self.delay_time = random.triangular(60, 240, 120)
         return self.delay_time
 
 
@@ -196,22 +208,21 @@ class Sink(Infra):
     vehicle_removed_toggle = False
 
     vehicle_removed_driving_time = []
-    tick_removing=0
+    tick_removing = 0
 
     def step(self):
-        if self.tick_removing<self.model.schedule.steps:
-            self.vehicle_removed_driving_time=[]
+        if self.tick_removing < self.model.schedule.steps:
+            self.vehicle_removed_driving_time = []
 
     def remove(self, vehicle):
-        #update the tick we are removing at
+        # update the tick we are removing at
         self.tick_removing = self.model.schedule.steps
 
-        #append the truck to the list of vehicles this sink removes at this tick
-        self.vehicle_removed_driving_time.append([vehicle.unique_id,vehicle.removed_at_step-vehicle.generated_at_step])
+        # append the truck to the list of vehicles this sink removes at this tick
+        self.vehicle_removed_driving_time.append([vehicle.unique_id, vehicle.removed_at_step-vehicle.generated_at_step])
 
         self.model.schedule.remove(vehicle)
         self.vehicle_removed_toggle = not self.vehicle_removed_toggle
-        #print(str(self) + ' REMOVE ' + str(vehicle))
 
 
 # ---------------------------------------------------------------
@@ -240,6 +251,7 @@ class Source(Infra):
     generation_frequency = 5
     vehicle_generated_flag = False
     print(truck_counter)
+
     def step(self):
         if self.model.schedule.steps % self.generation_frequency == 0:
             self.generate_truck()
@@ -259,7 +271,6 @@ class Source(Infra):
                 Source.truck_counter += 1
                 self.vehicle_count += 1
                 self.vehicle_generated_flag = True
-                #print(str(self) + " GENERATE " + str(agent))
         except Exception as e:
             print("Oops!", e.__class__, "occurred.")
 
@@ -269,15 +280,15 @@ class SourceSink(Source, Sink):
     """
     Generates and removes trucks
     """
-    #combined step function because multiple inheritance is weird?
+    # combined step function because multiple inheritance is weird?
     def step(self):
-        #source step
+        # source step
         if self.model.schedule.steps % self.generation_frequency == 0:
             self.generate_truck()
         else:
             self.vehicle_generated_flag = False
 
-        #sink step
+        # sink step
         if self.tick_removing < self.model.schedule.steps:
             self.vehicle_removed_driving_time = []
 
@@ -379,7 +390,6 @@ class Vehicle(Agent):
         """
         To print the vehicle trajectory at each step
         """
-        #print(self)
 
     def drive(self):
 
@@ -436,5 +446,3 @@ class Vehicle(Agent):
         self.location.vehicle_count += 1
 
 # EOF -----------------------------------------------------------
-
-

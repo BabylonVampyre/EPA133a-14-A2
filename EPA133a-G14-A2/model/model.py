@@ -25,6 +25,7 @@ def set_lat_lon_bound(lat_min, lat_max, lon_min, lon_max, edge_ratio=0.02):
     y_min = lat_max + lat_edge
     return y_min, y_max, x_min, x_max
 
+
 def get_delay(agent):
     if type(agent) == Bridge:
         return agent.get_delay_time()
@@ -63,7 +64,7 @@ class BangladeshModel(Model):
 
     step_time = 1
 
-    def __init__(self, seed,scenario, x_max=500, y_max=500, x_min=0, y_min=0):
+    def __init__(self, seed, scenario, x_max=500, y_max=500, x_min=0, y_min=0):
 
         self.schedule = BaseScheduler(self)
         self.running = True
@@ -81,10 +82,7 @@ class BangladeshModel(Model):
         self.tables = {}
         self.datacollector = mesa.DataCollector()
 
-
-
-
-#data collector of delay time and vehicle driving time when the vehicle has arrived at the sink
+        # data collector of delay time and vehicle driving time when the vehicle has arrived at the sink
         self.datacollector = mesa.DataCollector(model_reporters={},
                                                 agent_reporters={"Delay time": lambda a: get_delay(a) if a.__class__.__name__ == 'Bridge' else None,
                                                                  "Driving time of cars leaving": lambda a: a.vehicle_removed_driving_time if a.__class__.__name__ == 'Sink' or a.__class__.__name__ == 'SourceSink' else None})
@@ -97,8 +95,6 @@ class BangladeshModel(Model):
         """
 
         df = pd.read_csv('../data/N1.csv')
-        #print(sum(df['length']))
-        #print('generate model:',self.seed, self.scenario)
         # a list of names of roads to be generated
         roads = ['N1']
 
@@ -160,7 +156,8 @@ class BangladeshModel(Model):
                     self.sources.append(agent.unique_id)
                     self.sinks.append(agent.unique_id)
                 elif model_type == 'bridge':
-                    agent = Bridge(row['id'], self, row['length'], row['name'], row['road'],row['condition'], scenario = self.scenario,seed=self.seed)
+                    agent = Bridge(row['id'], self, row['length'], row['name'], row['road'], row['condition'],
+                                   scenario=self.scenario, seed=self.seed)
                 elif model_type == 'link':
                     agent = Link(row['id'], self, row['length'], row['name'], row['road'])
 
