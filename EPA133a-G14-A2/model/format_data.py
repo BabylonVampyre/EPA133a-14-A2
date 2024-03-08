@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-# To help with printing
+# To help with printing/debugging
 pd.set_option('display.width', 320)
 pd.set_option('display.max_columns', 10)
 
@@ -45,31 +45,17 @@ def sort_and_remove_duplicates(df):
     }
     # Apply groupby with custom aggregations
     dropped_df = ordered_df.groupby('LRPName').agg(aggregations)
-
-    # dropped_df.to_csv('../data/before removing dupes.csv', index=False)
-    # print("before renaming")
-    # print(dropped_df)
     dropped_df['name'] = (dropped_df['name']
                           .str.lower()
                           .str.replace('r', 'l')
                           .str.replace(' ', '')
-                          .str.replace('.', ''))#.str.replace('left', 'right')
-
-    # print("after renaming")
-    # print(dropped_df)
+                          .str.replace('.', ''))
 
     dropped_df = dropped_df.groupby('name').agg(aggregations)
     dropped_df.reset_index(drop=True, inplace=True)
 
-    # print("after agg on name")
-    # print(dropped_df)
-
-
     dropped_df = dropped_df.groupby('chainage').agg(aggregations)
     dropped_df.reset_index(drop=True, inplace=True)
-
-    # dropped_df.to_csv('../data/after removing dupes.csv', index=False)
-
 
     dropped_df.drop(columns=['name'], inplace=True)
 
@@ -107,11 +93,11 @@ def create_source_sink():
     # Select all rows where the column "road" is equal to "N1"
     road_df = df[df['road'] == 'N1']
     # add model types and names for the source and sink dataframes
-    start_end_road_df = road_df[road_df['name'].str.startswith(('Start of Road', 'Chittagong city area ends and the survey of N1 starts again'))].copy()
+    start_end_road_df = (road_df[road_df['name'].str
+                         .startswith(('Start of Road', 'Chittagong city area ends and the survey of N1 starts again'))]
+                         .copy())
     start_end_road_df['model_type'] = 'sourcesink'
     start_end_road_df['name'] = 'sourcesink'
-    print("we need this:: ")
-    print(start_end_road_df)
     return start_end_road_df
 
 
@@ -132,7 +118,7 @@ def format_source_sink(source_sink_df):
 
 def add_links(df):
     """
-    This method adds all the links inbetween the bridges, source, and sink. The lenght is determined by the
+    This method adds all the links inbetween the bridges, source, and sink. The length is determined by the
     chainage of the next row, minus the chainage of the previous one.
     """
     new_dfs = []
@@ -145,7 +131,7 @@ def add_links(df):
             'road': row_before['road'],
             'model_type': 'link',
             'name': 'link ' + str(i+1),
-            # put the coordiantes as averages of the two lats and lons
+            # put the coordinates as averages of the two lats and lons
             'lat': (row_before['lat'] + row_after['lat']) / 2,
             'lon': (row_before['lon'] + row_after['lon']) / 2,
             # make the length be the difference of the cahinages of its neighbors, and multiply by 1000 to convert km->m
@@ -164,7 +150,7 @@ def add_links(df):
 
 def remove_chainage_and_add_id(df):
     """
-    Thid method removes the chainage column as it is not needed anymore, and adds an id column,
+    This method removes the chainage column as it is not needed anymore, and adds an id column,
     giving each row a unique id starting from 200000
     """
     # Remove chainage
